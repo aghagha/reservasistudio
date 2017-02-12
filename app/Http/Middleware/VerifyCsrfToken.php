@@ -13,6 +13,7 @@ class VerifyCsrfToken extends BaseVerifier
      */
     protected $except = [
         'u/register',
+        'u/login',
         'j/jadwal',
         'r/store',
         'r/edit'

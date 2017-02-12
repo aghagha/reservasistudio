@@ -15,8 +15,15 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/tes', function () {
+    return 'test';
+});
+
+Route::post('/register', 'UserController@register');
+
 Route::group(['prefix'=>'u'],function (){
   Route::post('register', 'UserController@register');
+  Route::post('login', 'UserController@login');
 });
 
 Route::group(['prefix'=>'j'],function (){
