@@ -14,8 +14,14 @@ class VerifyCsrfToken extends BaseVerifier
     protected $except = [
         'u/register',
         'u/login',
+        'u/view',
+        'u/edit',
+        'j/kotastudio',
         'j/jadwal',
         'r/store',
-        'r/edit'
+        'r/edit',
+        'r/cancel',
+        'r/issue',
+        'r/history'
     ];
 }

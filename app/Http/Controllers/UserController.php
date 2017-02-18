@@ -38,7 +38,7 @@ class UserController extends Controller
         $output->status = "Registrasi berhasil";
         return json_encode($output);
       } catch (Exception $e) {
-	$error = (object)array();
+	      $error = (object)array();
         $error->code = "0";
         $error->status = "Registrasi gagal";
         return json_encode($error);
@@ -71,5 +71,50 @@ class UserController extends Controller
         $output->status = "Kombinasi email dan password salah";
         return json_encode($output);
       }
+    }
+
+    function view(Request $request){
+      $output = (object)array();
+      $user_id = $request->input('user_id');
+      try {
+        $user = User::where('user_id',$user_id)->first();
+        $output->user = $user;
+        $output->code = '1';
+        $output->status = 'berhasil menampilkan data user';
+      } catch (Exception $e) {
+        $output->code = '0';
+        $output->status = 'Gagal menampilkan data user';
+      }
+      return json_encode($output);
+    }
+
+    function edit(Request $request){
+      $output = (object)array();
+      $user_id = $request->input('user_id');
+      $user_name = $request->input('user_name');
+      $user_email = $request->input('user_email');
+      $user_password = $request->input('user_password');
+      $user_new_password = $request->input('user_new_password');
+      if($user_new_password == '')$user_new_password=$user_password;
+      $user_hp = $request->input('user_hp');
+      $old_password = User::where('user_id',$user_id)->first()->user_password;
+      if(hash('md5', $user_password) != $old_password){
+        $output->code = '-1';
+        $output->status = 'Password lama tidak cocok';
+        return json_encode($output);
+      }
+
+      try {
+        $user = User::where('user_id',$user_id)->update(['user_name'=>$user_name,
+                                                         'user_email'=>$user_email,
+                                                         'user_password'=>hash('md5', $user_new_password),
+                                                         'user_hp'=>$user_hp]);
+        $output->code = '1';
+        $output->status = 'Berhasil mengupdate profile';
+      } catch (Exception $e) {
+        $output->code = '0';
+        $output->status = 'Gagal mengupdate profile';
+      }
+      return json_encode($output);
     }
 }
