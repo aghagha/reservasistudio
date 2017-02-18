@@ -42,9 +42,13 @@ Route::group(['prefix'=>'r'],function (){
 });
 
 Route::group(['prefix'=>'web'],function(){
-  Route::get('/',function(){return view('welcome');});
+  Route::get('/',function(){return view('home');});
 });
 
 Route::group(['prefix'=>'studio'],function (){
 
 });
+
+Auth::routes();
+
+Route::get('/home', 'HomeController@index');
