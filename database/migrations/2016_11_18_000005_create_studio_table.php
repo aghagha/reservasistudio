@@ -22,8 +22,10 @@ class CreateStudioTable extends Migration
         $table->string('studio_nama');
         $table->string('studio_alamat');
         $table->string('studio_telepon');
+        $table->text('studio_rekening');
         $table->string('studio_open_hour');
         $table->string('studio_close_hour');
+        $table->softDeletes();
         $table->timestamps();
       });
     }

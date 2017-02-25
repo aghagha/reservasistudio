@@ -23,4 +23,9 @@ class User extends Authenticatable
     // protected $hidden = [
     //     'password', 'remember_token',
     // ];
+    function scopechecklogin($query, $data)
+    {
+        return $query->where('user_email','=',$data['user_email'])
+                    ->where('user_password','=',$data['user_password']);
+    }
 }

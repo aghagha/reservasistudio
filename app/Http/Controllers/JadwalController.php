@@ -53,6 +53,7 @@ class JadwalController extends Controller
           foreach ($room as $r) {
             $temp_room[$k]['room_id']=$r['room_id'];
             $temp_room[$k]['jadwal']=$j;
+            $temp_room[$k]['harga']=$r['room_harga'];
             $k++;
           }
           $jadwal[$i]['room']=$temp_room;
@@ -65,6 +66,7 @@ class JadwalController extends Controller
           $temp_room = array();
           foreach ($room as $r) {
             $temp_room[$k]['room_id']=$r['room_id'];
+            $temp_room[$k]['harga']=$r['room_harga'];
             $reservasi = Reservasi::where('reservasi_tanggal','=',$tanggal)
                                     ->where('reservasi_status','1')
                                     ->where('room_id','=',$r['room_id'])
@@ -87,7 +89,7 @@ class JadwalController extends Controller
                   }
                 }
                 $temp_room[$k]['jadwal']=$tmp_j;
-                $jadwal[$i][$tanggal][$r['room_id']]=$tmp_j;
+                //$jadwal[$i][$tanggal][$r['room_id']]=$tmp_j;
               }  
             }
             $k++;
@@ -106,5 +108,58 @@ class JadwalController extends Controller
       $output = (object)array();
       $output->list_jadwal = $jadwal;
       return json_encode($output);
+    }
+
+    function getNewJadwal(Request $request){
+      /*the master plan:ndapetin semua jadwal yang available pada hari H booking dengan room yang sama, 
+      lalu ditambah dengan jadwal yang sudah ada di detail reservasi*/
+      $reservasi_id = $request->get('reservasi_id');
+      $output = array();
+      try {
+        $reservasi = Reservasi::where('reservasi_id',$reservasi_id)->first()->toArray();
+        $room = Room::where('room_id',$reservasi['room_id'])->first(['room_nama'])->toArray();
+        $studio = Studio::where('studio_id',$reservasi['studio_id'])->first(['studio_nama'])->toArray();
+        $reservasi['room_nama']=$room['room_nama'];
+        $reservasi['studio_nama']=$studio['studio_nama'];
+        $tanggal = $reservasi['reservasi_tanggal'];
+        $room_id = $reservasi['room_id'];
+        $jumlah = ReservasiDetail::where('reservasi_id',$reservasi_id)->get()->count();
+        $list_jadwal = Jadwal::get()->toArray();
+        $jadwal=array();
+        $reservasi_booked = Reservasi::where('room_id',$room_id)
+                                        ->where('reservasi_tanggal',$tanggal)
+                                        ->where('reservasi_id','!=',$reservasi_id)
+                                        ->where('reservasi_status','1')
+                                        ->get()
+                                        ->toArray();
+        if(count($reservasi_booked)==0){
+          $jadwal = $list_jadwal;
+        } else {
+          $reservasi_sorted = array();
+          $i=0;
+          foreach ($reservasi_booked as $r) {
+            $reservasi_sorted[$i]=$r['reservasi_id'];
+            $i++;
+          }
+          $jadwal_booked = ReservasiDetail::whereIn('reservasi_id',$reservasi_sorted)->get()->toArray();
+          $jadwal_sorted = array();
+          $i=0;
+          foreach ($jadwal_booked as $j) {
+            $jadwal_sorted[$i]=$j['jadwal_id'];
+            $i++;
+          }
+          $jadwal = Jadwal::whereNotIn('jadwal_id',$jadwal_sorted)->get()->toArray();
+        }
+        $object['code'] = '1';
+        $object['message'] = 'Pencarian jadwal berhasil';
+        $object['reservasi'] = $reservasi;
+        $object['jumlah'] = $jumlah;
+        $object['jadwal'] = $jadwal;
+      } catch (Exception $e) {
+        echo $e;
+        $object['code'] = '0';
+        $object['message'] = 'Pencarian jadwal gagal';
+      }
+      return json_encode($object);
     }
 }

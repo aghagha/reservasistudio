@@ -97,7 +97,7 @@ return [
 
     'custom' => [
         'attribute-name' => [
-            'rule-name' => 'custom-message',
+            'user id' => 'User',
         ],
     ],
 
@@ -112,6 +112,13 @@ return [
     |
     */
 
-    'attributes' => [],
+    'attributes' => [
+        'user_id' => 'User',
+        'city_id' => 'City',
+        'studio_nama' => 'Name',
+        'studio_alamat' => 'Address detail',
+        'studio_telepon' => 'Phone number',
+        'studio_rekening' => 'Bank Account',
+    ],
 
 ];

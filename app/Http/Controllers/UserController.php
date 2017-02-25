@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use Hash;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Input;
@@ -29,7 +30,7 @@ class UserController extends Controller
       $user->tipe_user_id = $tipe_user;
       $user->user_name = $user_name;
       $user->user_email = $user_email;
-      $user->user_password = hash('md5',$user_password);
+      $user->user_password = hash('md5', $user_password);
       $user->user_hp = $user_hp;
       try {
         $user->save();
@@ -57,7 +58,7 @@ class UserController extends Controller
       }
 
       $user = User::where('user_email','=',$user_email)
-                    ->where('user_password','=',hash('md5',$user_password))
+                    ->where('user_password','=',hash('md5', $user_password))
                     ->get();
       if($user->count()>=1){
         $user[0]->user_id = (string)$user[0]->user_id;
@@ -95,7 +96,7 @@ class UserController extends Controller
       $user_email = $request->input('user_email');
       $user_password = $request->input('user_password');
       $user_new_password = $request->input('user_new_password');
-      if($user_new_password == '')$user_new_password=$user_password;
+      if($user_new_password == null)$user_new_password=$user_password;
       $user_hp = $request->input('user_hp');
       $old_password = User::where('user_id',$user_id)->first()->user_password;
       if(hash('md5', $user_password) != $old_password){
@@ -103,7 +104,6 @@ class UserController extends Controller
         $output->status = 'Password lama tidak cocok';
         return json_encode($output);
       }
-
       try {
         $user = User::where('user_id',$user_id)->update(['user_name'=>$user_name,
                                                          'user_email'=>$user_email,

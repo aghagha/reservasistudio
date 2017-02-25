@@ -18,10 +18,13 @@ class VerifyCsrfToken extends BaseVerifier
         'u/edit',
         'j/kotastudio',
         'j/jadwal',
+        'j/newjadwal',
         'r/store',
         'r/edit',
         'r/cancel',
         'r/issue',
-        'r/history'
+        'r/history',
+        'r/kontak',
+        'web/authenticate'
     ];
 }
