@@ -10,7 +10,7 @@ use App\Jadwal;
 use App\Studio;
 use App\Room;
 use App\User;
-use Exception;
+use \Exception;
 use Session;
 use Redirect;
 
@@ -159,20 +159,25 @@ class ReservasiController extends Controller
   function cancel(Request $request){
     $treshold = 1;
     $reservasi_id = $request->input('reservasi_id');
-    $reservasi = Reservasi::where('reservasi_id',$reservasi_id)->first();
+    $reservasi = Reservasi::where('reservasi_id',$reservasi_id)->get();
+    // dd($reservasi);
     $output=(object)array();
     if($reservasi->count()>0){
-      $tanggal = $reservasi->reservasi_tanggal;
+      $reservasi = $reservasi->toArray();
+      // dd($reservasi);
+      $tanggal = $reservasi[0]['reservasi_tanggal'];
       $now = date('Y-m-d',strtotime('now'));
       $beda = date_diff(date_create($tanggal),date_create(date('Y-m-d',strtotime('now'))))->d;
       if($beda < 1){
         $output->code = '-2';
         $output->status = 'Reservasi tidak bisa dibatalkan, sudah melebihi batas pembatalan';
         return json_encode($output);
+      } else {
+        $amount_refund = $reservasi[0]['reservasi_tagihan'];
       }
 
       try {
-        $reservasi = Reservasi::where('reservasi_id',$reservasi_id)->update(['reservasi_status'=>"-1"]);
+        $reservasi = Reservasi::where('reservasi_id',$reservasi_id)->update(['reservasi_status'=>"2", 'reservasi_refund'=>$amount_refund]);
         $output->code = '1';
         $output->status = 'Reservasi dibatalkan';
       } catch (Exception $e) {
@@ -226,15 +231,25 @@ class ReservasiController extends Controller
   }
 
   function showTransactionPage(){
+    $room = array();
+    $studio = array();
+    $city = array();
+    $tmp_std = array();
     $hak = Session::get('hak');
     $user_id = Session::get('id');
     $jadwal = Jadwal::get()->toArray();
-    $city_raw = City::get()->toArray();
+    $city_raw = City::withTrashed()->get()->toArray();
     if($hak == 'ADMIN_ZUPER'){
       try {
-        $studio_id = Studio::get(['studio_id','studio_nama','city_id'])->toArray();
-        $room_id = Room::whereIn('studio_id',$studio_id)->get(['room_id','room_nama'])->toArray();
-        $reservasi = Reservasi::where('reservasi_status',1)->orWhere('reservasi_status',2)->get();
+        $studio_id = Studio::withTrashed()->get(['studio_id','studio_nama','city_id'])->toArray();
+        //inisiasi studio, city, tmp_std
+        foreach ($studio_id as $s) {
+          $studio[$s['studio_id']]=$s['studio_nama'];
+          $city[$s['studio_id']]=$city_raw[$s['city_id']];
+          array_push($tmp_std, array('studio_id'=>$s['studio_id']));
+        }
+        $room_id = Room::whereIn('studio_id',$tmp_std)->get(['room_id','room_nama'])->toArray();
+        $reservasi = Reservasi::where('reservasi_status',1)->orWhere('reservasi_status',2)->get()->toArray();
       } catch (Exception $e) {
         $code['c']=0;
         $code['m']='Request Gagal';
@@ -243,9 +258,20 @@ class ReservasiController extends Controller
       }
     } elseif($hak == 'ADMIN_STUDIO'){
       try {
-        $studio_id = Studio::where('user_id',$user_id)->get(['studio_id','studio_nama','city_id'])->toArray();
-        $room_id = Room::whereIn('studio_id',$studio_id)->get(['room_id','room_nama'])->toArray();
-        $reservasi = Reservasi::whereIn('room_id',$room_id)->where('reservasi_status',1)
+        $studio_id = Studio::withTrashed()->where('user_id',$user_id)->get(['studio_id','studio_nama','city_id'])->toArray();
+        //inisiasi studio, city, tmp_std
+        foreach ($studio_id as $s) {
+          $studio[$s['studio_id']]=$s['studio_nama'];
+          $city[$s['studio_id']]=$city_raw[$s['city_id']];
+          array_push($tmp_std, array('studio_id'=>$s['studio_id']));
+        }
+        $room_id = Room::whereIn('studio_id',$tmp_std)->get(['room_id','room_nama'])->toArray();
+        unset($tmp_std);
+        $tmp_std = array();
+        foreach ($room_id as $r) {
+          array_push($tmp_std,array('room_id'=>$r['room_id']));
+        }
+        $reservasi = Reservasi::whereIn('room_id',$tmp_std)->where('reservasi_status',1)
                                  ->orWhere('reservasi_status',2)->get()->toArray();
       } catch (Exception $e) {
         $code['c']=0;
@@ -256,16 +282,10 @@ class ReservasiController extends Controller
     }
 
     try{
-      //memasukkan room & studio ke array
-      $room = array();
-      $studio = array();
-      $city = array();
+      //memasukkan room ke array
+      // $room_id = Room::whereIn('studio_id',$tmp_std)->get(['room_id','room_nama'])->toArray();
       foreach ($room_id as $r) {
         $room[$r['room_id']]=$r['room_nama'];
-      }
-      foreach ($studio_id as $s) {
-        $studio[$s['studio_id']]=$s['studio_nama'];
-        $city[$s['studio_id']]=$city_raw[$s['city_id']];
       }
       $user_raw = array();
       $i=0;
@@ -286,6 +306,7 @@ class ReservasiController extends Controller
         $users[$u['user_id']]['email']=$u['user_email'];
       }
     } catch (Exception $e){
+        echo $e;exit;
       $code['c']=0;
       $code['m']='Request Gagal';  
       Session::flash('msg',$code);

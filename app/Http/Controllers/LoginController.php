@@ -35,6 +35,7 @@ class LoginController extends Controller
 			return Redirect::back()->withErrors(array('email'=>' ','password'=>'Wrong email/password combination'));
 		}
     }
+
     public function logout()
 	{
 		Session::forget('hak');

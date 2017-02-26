@@ -40,7 +40,8 @@ class JadwalController extends Controller
       $room = Room::where('studio_id','=',$studio_id)->get()->toArray();
       $jadwal = array();
       $i = 0;
-      for ($i=0; $i < (4+$t); $i++) { 
+      $jjj = $t +4;
+      for ($i=0; $i<$jjj; $i++) { 
         $reservasi = Reservasi::where('reservasi_tanggal',$tanggal)
                                 ->where('reservasi_status','1')
                                 ->get();
@@ -123,8 +124,13 @@ class JadwalController extends Controller
         $reservasi['studio_nama']=$studio['studio_nama'];
         $tanggal = $reservasi['reservasi_tanggal'];
         $room_id = $reservasi['room_id'];
+        $j_booked = ReservasiDetail::where('reservasi_id',$reservasi_id)->get()->toArray();
         $jumlah = ReservasiDetail::where('reservasi_id',$reservasi_id)->get()->count();
         $list_jadwal = Jadwal::get()->toArray();
+        $jj_booked = array();
+        foreach ($j_booked as $j) {
+          array_push($jj_booked, $list_jadwal[$j['jadwal_id']]);
+        }
         $jadwal=array();
         $reservasi_booked = Reservasi::where('room_id',$room_id)
                                         ->where('reservasi_tanggal',$tanggal)
@@ -154,6 +160,7 @@ class JadwalController extends Controller
         $object['message'] = 'Pencarian jadwal berhasil';
         $object['reservasi'] = $reservasi;
         $object['jumlah'] = $jumlah;
+        $object['jadwal_lama'] = $jj_booked;
         $object['jadwal'] = $jadwal;
       } catch (Exception $e) {
         echo $e;

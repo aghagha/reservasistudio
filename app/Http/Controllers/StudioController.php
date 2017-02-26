@@ -9,6 +9,7 @@ use App\City;
 use Redirect;
 use Session;
 use Input;
+use \Exception;
 
 class StudioController extends Controller
 {

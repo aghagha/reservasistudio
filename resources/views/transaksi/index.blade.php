@@ -7,6 +7,14 @@
 @stop
 
 @section('content')
+    <?php
+      $status = array(
+          "0" => "Booked",
+          "1" => "Confirmed",
+          "2" => "Canceled",
+          "3" => "Failed",
+        );
+    ?>
     <div class="row">
         <div class="col-md-12">
             <div class="box box-primary">
@@ -31,6 +39,7 @@
                               <th>Schedule</th>
                               <th>Date</th>
                               <th>Bill</th>
+                              <th>Status</th>
                               <th>Refunded at</th>
                               <th>Refund Cost</th>
                             </tr>
@@ -52,6 +61,7 @@
                               </td>
                               <td>{{$r['reservasi_tanggal']}}</td>
                               <td>{{$r['reservasi_tagihan']}}</td>
+                              <td>{{$status[$r['reservasi_status']]}}</td>
                               <td>{{$r['refunded_at']}}</td>
                               <td>{{$r['reservasi_refund']}}</td>
                             </tr>

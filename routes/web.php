@@ -51,7 +51,6 @@ Route::group(['prefix'=>'web'],function(){
 });
 
 Route::group(['prefix'=>'studio','middleware'=>['admincheck']],function (){
-  Route::get('dashboard','HomeController@index');
   Route::get('dashboard_studio','HomeController@indexstudio');
 
   Route::get('add','StudioController@showAddPage');
@@ -59,9 +58,23 @@ Route::group(['prefix'=>'studio','middleware'=>['admincheck']],function (){
 
   Route::get('edit/{studio_id}',['as'=>'studio.edit','uses'=>'StudioController@showEditPage']);
   Route::post('update',['as'=>'studio.update','uses'=>'StudioController@edit']);
+
+  Route::get('city','CityController@index');
+  Route::get('addcity','CityController@showAddPage');
+  Route::post('storecity','CityController@store');
+  Route::post('editcity','CityController@edit');
+  Route::post('deletecity','CityController@delete');
+
+  Route::get('user','UserController@showListPage');
+  Route::post('deleteuser','UserController@delete');
 });
 
 Route::group(['prefix'=>'studio','middleware'=>['studiocheck']],function(){
+  Route::get('dashboard','HomeController@index');
+
+  Route::get('admin','UserController@showEditPage');
+  Route::post('edituser','UserController@editweb');
+
   Route::get('list','StudioController@showListPage');
   Route::get('delete/{studio_id}',['as'=>'studio.delete','uses'=>'StudioController@delete']);
 

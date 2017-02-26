@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Input;
 use App\User;
 use \Exception;
+use Session;
+use Redirect;
 
 class UserController extends Controller
 {
@@ -17,6 +19,7 @@ class UserController extends Controller
       $user_email = $request->input('user_email');
       $user_password = $request->input('user_password');
       $user_hp = $request->input('user_hp');
+      $web = $request->input('web');
 
       $output = (object)array();
       $count = User::where('user_email','=',$user_email)->get();
@@ -37,12 +40,25 @@ class UserController extends Controller
         $output->user = $user;
         $output->code = "1";
         $output->status = "Registrasi berhasil";
-        return json_encode($output);
+        if($web != '')return json_encode($output);
+        else {
+          $code = array();
+          $code['c']=1;
+          $code['m']='User registered';
+          Session::flash('msg',$code);
+          return Redirect::back();
+        }
       } catch (Exception $e) {
 	      $error = (object)array();
         $error->code = "0";
         $error->status = "Registrasi gagal";
-        return json_encode($error);
+        if($web != '')return json_encode($error);
+        else {
+          $code['c']=0;
+          $code['m']='Input new user failed';
+          Session::flash('msg',$code);
+          return Redirect::back();
+        }
       }
     }
 
@@ -116,5 +132,74 @@ class UserController extends Controller
         $output->status = 'Gagal mengupdate profile';
       }
       return json_encode($output);
+    }
+
+    function delete(Request $request){
+      $code = array();
+      $user_id = $request->input('user_id');
+      $user = User::where('user_id',$user_id);
+      try{
+        $user->delete();
+        $code['c']=1;
+        $code['m']="User deleted!";
+      } catch(Exception $e){
+        $code['c']=0;
+        $code['m']="Failed to delete user...";
+      } 
+      Session::flash('msg',$code);
+      return Redirect::back();
+    }
+
+    function showListPage(Request $request){
+      $user = User::where('tipe_user_id','!=','3')->get()->toArray();
+      return view('user.index')->with('user',$user);
+    }
+
+    function showEditPage(Request $request){
+      $user_id = Session::get('id');
+      $user = User::where('user_id',$user_id)->first()->toArray();
+      return view('user.edit')->with(['user'=>$user]);
+    }
+
+    function editWeb(Request $request){
+      $code = array();
+      $user_id = $request->input('user_id');
+      $user_name = $request->input('user_name');
+      $user_email = $request->input('user_email');
+      $user_hp = $request->input('user_hp');
+      $user_new_password= $request->input('user_new_password');
+      $user_new_password2 = $request->input('user_new_password2');
+      $test = $request->input('test');
+      $user_password = $request->input('user_password');
+      if(hash('md5', $user_password)!=$test){
+        $code['c'] = '0';
+        $code['m'] = 'Old password does not match';
+        Session::flash('msg',$code);
+        return Redirect::back();
+      }
+      else if($user_new_password != $user_new_password){
+        $code['c'] = '0';
+        $code['m'] = 'New password does not match';
+        Session::flash('msg',$code);
+        return Redirect::back(); 
+      }
+      else {
+        if($user_new_password!='')$input = $user_new_password;
+        else $input = $user_password;
+        try{
+          $user = User::where('user_id',$user_id)->update(['user_name'=>$user_name,
+                                                      'user_email'=>$user_email,
+                                                      'user_hp'=>$user_hp,
+                                                      'user_password'=>hash('md5', $input)]);
+          $code['c'] = '1';
+          $code['m'] = 'Changes succesfully saved!';
+        } catch(Exception $e){
+          $code['c'] = '1';
+          $code['m'] = 'Changes could not be made!';
+        }
+      }
+      
+      Session::flash('msg',$code);
+      return Redirect::back(); 
     }
 }
