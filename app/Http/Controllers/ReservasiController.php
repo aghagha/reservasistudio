@@ -140,7 +140,7 @@ class ReservasiController extends Controller
           $i++;
         }
         $room = Room::where('room_id',$r['room_id'])->first()->toArray();
-        $studio = Studio::where('studio_id',$room['studio_id'])->first()->toArray();
+        $studio = Studio::withTrashed()->where('studio_id',$room['studio_id'])->first()->toArray();
         $reservasi['reservasi'][$j]['room_nama'] = $room['room_nama'];
         $reservasi['reservasi'][$j]['studio_nama'] = $studio['studio_nama'];
         $reservasi['reservasi'][$j]['jadwal'] = $jadwal_id;

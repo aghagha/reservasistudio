@@ -119,7 +119,7 @@ class JadwalController extends Controller
       try {
         $reservasi = Reservasi::where('reservasi_id',$reservasi_id)->first()->toArray();
         $room = Room::where('room_id',$reservasi['room_id'])->first(['room_nama'])->toArray();
-        $studio = Studio::where('studio_id',$reservasi['studio_id'])->first(['studio_nama'])->toArray();
+        $studio = Studio::withTrashed()->where('studio_id',$reservasi['studio_id'])->first(['studio_nama'])->toArray();
         $reservasi['room_nama']=$room['room_nama'];
         $reservasi['studio_nama']=$studio['studio_nama'];
         $tanggal = $reservasi['reservasi_tanggal'];
