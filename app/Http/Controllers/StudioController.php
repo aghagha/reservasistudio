@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Studio;
+use App\Room;
 use App\User;
 use App\City;
 use Redirect;
@@ -55,7 +56,14 @@ class StudioController extends Controller
             $user_id = Session::get('id');
             $studio = Studio::where('user_id',$user_id)->get()->toArray();
         }
-        return view('studio.list')->with(['studio'=>$studio,'city'=>$city]);
+        $std = array();
+        $std_nama = array();
+        foreach ($studio as $s) {
+            array_push($std, array('studio_id'=>$s['studio_id']));
+            $std_nama[$s['studio_id']]=$s['studio_nama'];
+        }
+        $room = Room::whereIn('studio_id',$std)->get()->toArray();
+        return view('studio.list')->with(['studio'=>$studio,'city'=>$city, 'room'=>$room, 'std'=>$std_nama]);
     }
 
     public function store(Request $request){
@@ -132,7 +140,8 @@ class StudioController extends Controller
         return Redirect::back();
     }
 
-    public function delete($studio_id){
+    public function delete(Request $request){
+        $studio_id =$request->input('studio_id');
         $studio = Studio::where('studio_id',$studio_id);
         try {
             $studio->delete();

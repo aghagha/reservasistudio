@@ -56,9 +56,6 @@ Route::group(['prefix'=>'studio','middleware'=>['admincheck']],function (){
   Route::get('add','StudioController@showAddPage');
   Route::post('create',['as'=>'studio.store','uses'=>'StudioController@store']);
 
-  Route::get('edit/{studio_id}',['as'=>'studio.edit','uses'=>'StudioController@showEditPage']);
-  Route::post('update',['as'=>'studio.update','uses'=>'StudioController@edit']);
-
   Route::get('city','CityController@index');
   Route::get('addcity','CityController@showAddPage');
   Route::post('storecity','CityController@store');
@@ -66,19 +63,32 @@ Route::group(['prefix'=>'studio','middleware'=>['admincheck']],function (){
   Route::post('deletecity','CityController@delete');
 
   Route::get('user','UserController@showListPage');
+  Route::get('adduser','UserController@showAddPage');
   Route::post('deleteuser','UserController@delete');
+  Route::post('newuser','UserController@registerweb');
 });
 
 Route::group(['prefix'=>'studio','middleware'=>['studiocheck']],function(){
   Route::get('dashboard','HomeController@index');
 
+  Route::get('edit/{studio_id}',['as'=>'studio.edit','uses'=>'StudioController@showEditPage']);
+  Route::post('update',['as'=>'studio.update','uses'=>'StudioController@edit']);
+
   Route::get('admin','UserController@showEditPage');
   Route::post('edituser','UserController@editweb');
 
   Route::get('list','StudioController@showListPage');
-  Route::get('delete/{studio_id}',['as'=>'studio.delete','uses'=>'StudioController@delete']);
+  Route::post('delete',['as'=>'studio.delete','uses'=>'StudioController@delete']);
 
+  Route::post('addroom',['as'=>'studio.addroom','uses'=>'RoomController@store']);
+  Route::post('editroom','RoomController@update');
+  Route::post('delroom','RoomController@delete');
+
+  Route::get('issue',['as'=>'studio.issue','uses'=>'ReservasiController@showIssuePage']);
+  Route::post('detailreservasi','ReservasiController@getdetail');
   Route::get('transaction',['as'=>'studio.transaction','uses'=>'ReservasiController@showTransactionPage']);
+
+  Route::post('report','TransactionController@export');
 });
 
 Auth::routes();

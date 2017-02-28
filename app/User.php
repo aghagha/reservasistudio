@@ -30,4 +30,14 @@ class User extends Authenticatable
         return $query->where('user_email','=',$data['user_email'])
                     ->where('user_password','=',$data['user_password']);
     }
+
+    function getUser($arr){
+        $user = User::withTrashed()->whereIn('user_id',$arr)->get()->toArray();
+        $sorted = array();
+        foreach ($user as $s) {
+            $sorted[$s['user_id']]['nama']=$s['user_name'];
+            $sorted[$s['user_id']]['email']=$s['user_email'];
+        }
+        return $sorted;
+    }
 }

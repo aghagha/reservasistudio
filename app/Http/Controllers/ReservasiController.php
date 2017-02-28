@@ -18,7 +18,6 @@ class ReservasiController extends Controller
 {
   function store(Request $request){
       $output=(object)array();
-    // try {
       $user_id = $request->input('user_id');
       $room_id = $request->input('room_id');
       $studio_id = Room::where('room_id',$room_id)->first(['studio_id'])->toArray()['studio_id'];
@@ -27,6 +26,10 @@ class ReservasiController extends Controller
       $nama_band = $request->input('nama_band');
       $waktu_booking = date('H:i:s');
       $tanggal = $request->input('tanggal');
+    //tentukan batas disini
+      $due = 4;//jam
+      $batas = date('H:i:s d-m-Y',strtotime('+'.$due.' hours'));
+    //
       $jadwal = $request->input('jadwal');
       if($jadwal == ''){
         $output->code = "-1";
@@ -47,6 +50,7 @@ class ReservasiController extends Controller
       $input->reservasi_refund = '0';
       $input->reservasi_waktu_booking = $waktu_booking;
       $input->reservasi_tanggal = $tanggal;
+      $input->reservasi_batas = $batas;
       try {
         $input->save();
         foreach ($list_jadwal as $l) {
@@ -127,6 +131,12 @@ class ReservasiController extends Controller
     } else {
       $j=0;
       foreach ($reservasi['reservasi'] as $r) {
+        $time_due = strtotime($r['reservasi_batas']);
+        $date_due = date('H:i:s d-M-Y',$time_due);
+        $checkfail = date_diff(date_create($date_due),date_create(date('H:i:s d-M-Y',strtotime('now'))));
+        if($checkfail->invert == 0){
+          Reservasi::where('reservasi_id',$r['reservasi_id'])->update(['reservasi_status'=>3]); 
+        }
         $detail = ReservasiDetail::where('reservasi_id','=',$r['reservasi_id'])->get()->toArray();
         $len = count($detail);
         $jadwal_id = '';
@@ -160,15 +170,13 @@ class ReservasiController extends Controller
     $treshold = 1;
     $reservasi_id = $request->input('reservasi_id');
     $reservasi = Reservasi::where('reservasi_id',$reservasi_id)->get();
-    // dd($reservasi);
     $output=(object)array();
     if($reservasi->count()>0){
       $reservasi = $reservasi->toArray();
-      // dd($reservasi);
       $tanggal = $reservasi[0]['reservasi_tanggal'];
       $now = date('Y-m-d',strtotime('now'));
       $beda = date_diff(date_create($tanggal),date_create(date('Y-m-d',strtotime('now'))))->d;
-      if($beda < 1){
+      if($beda < $treshold){
         $output->code = '-2';
         $output->status = 'Reservasi tidak bisa dibatalkan, sudah melebihi batas pembatalan';
         return json_encode($output);
@@ -194,21 +202,22 @@ class ReservasiController extends Controller
   function issue(Request $request){
     $reservasi_id = $request->input('reservasi_id');
     $reservasi = Reservasi::where('reservasi_id',$reservasi_id)->first();
-    $output=(object)array();
+    $output=array();
     if($reservasi->count()>0){
       try {
         $reservasi = Reservasi::where('reservasi_id',$reservasi_id)->update(['reservasi_status'=>"1"]);
-        $output->code = '1';
-        $output->status = 'Issue reservasi berhasil';
+        $output['c'] = '1';
+        $output['m'] = 'Reservation confirmed!';
       } catch (Exception $e) {
-        $output->code = '0';
-        $output->status = 'Issue reservasi gagal';
+        $output['c'] = '0';
+        $output['m'] = 'Failed to confirm the reservation...';
       }
     } else {
-      $output->code = '-1';
-      $output->status = 'Reservasi tidak ditemukan';
+      $output['c'] = '0';
+      $output['m'] = 'Reservation not found...';
     }
-    return json_encode($output);
+    Session::flash('msg',$output);
+    return Redirect::route('studio.issue');
   }
 
   function getKontak(Request $request){
@@ -313,5 +322,46 @@ class ReservasiController extends Controller
       return Redirect::back();
     }
     return view('transaksi.index')->with(['reservasi'=>$reservasi,'user'=>$users,'room'=>$room,'studio'=>$studio, 'city'=>$city]);
+  }
+
+  function showIssuePage(Request $request){
+    return view('transaksi.confirm');
+  }
+
+  function getDetail(Request $request){
+    $code = array();
+    $nomor = $request->input('reservasi_nomor_booking');
+    try {
+      $reservasi = Reservasi::where('reservasi_nomor_booking',$nomor)->first();
+      if($reservasi == null){
+        $code['c']=0;
+        $code['m']="Reservation not found...";
+        Session::flash('msg',$code);
+      } else {
+        $reservasi = $reservasi->toArray();
+        $studio = Studio::where('studio_id',$reservasi['studio_id'])->first()->toArray();
+        $city = City::where('city_id',$studio['city_id'])->first()->toArray();
+        $room = Room::where('studio_id',$reservasi['room_id'])->first()->toArray();
+        $user = User::where('user_id',$reservasi['user_id'])->first()->toArray();
+        $detail = ReservasiDetail::where('reservasi_id',$reservasi['reservasi_id'])->get()->toArray();
+        $jadwal = Jadwal::all()->toArray();
+        $content = array();
+        $content['studio']=$studio['studio_nama'];
+        $content['room']=$room['room_nama'];
+        $content['city']=$city['city_name'];
+        $content['user']=$user['user_name'];
+        $content['detail']=$detail;
+        $code['c']=1;
+        $code['m']="Reservation found!";
+        $code['s']="oke";
+        Session::flash('msg',$code);
+        return view('transaksi.confirm')->with(['reservasi'=>$reservasi, 'data'=>$content, 'jadwal'=>$jadwal]);
+      }
+    } catch (Exception $e) {
+      $code['c']=0;
+      $code['m']="Reservation not found...";
+      Session::flash('msg',$code);
+      return Redirect::back();
+    }
   }
 }

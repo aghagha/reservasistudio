@@ -155,6 +155,10 @@ class UserController extends Controller
       return view('user.index')->with('user',$user);
     }
 
+    function showAddPage(Request $request){
+      return view('user.add');
+    }
+
     function showEditPage(Request $request){
       $user_id = Session::get('id');
       $user = User::where('user_id',$user_id)->first()->toArray();
@@ -201,5 +205,49 @@ class UserController extends Controller
       
       Session::flash('msg',$code);
       return Redirect::back(); 
+    }
+
+    function registerweb(Request $request){
+      $code = array();
+      $user_name = $request->input('user_name');
+      $user_email = $request->input('user_email');
+      $user_hp = $request->input('user_hp');
+      $user_new_password= $request->input('user_new_password');
+      $user_new_password2 = $request->input('user_new_password2');
+      $user_password = $request->input('user_password');
+      if(Session::get('hak')=='ADMIN_ZUPER'){
+        $user = User::where('user_id',Session::get('id'))->first();
+      } else {
+        $code['c']=-1;
+        $code['m']='Not authorized';
+        Session::flash('msg',$code);
+        return Redirect::back();
+      }
+      $user->toArray();
+      $password = $user['user_password'];
+      if(hash('md5', $user_password)!=$password || $user_new_password!=$user_new_password2){
+        $code['c']=0;
+        $code['m']='Failed to add user';
+        Session::flash('msg',$code);
+        return Redirect::back();
+      }
+      $user = new User;
+      $user->tipe_user_id = '2';
+      $user->user_name = $user_name;
+      $user->user_email = $user_email;
+      $user->user_password = hash('md5', $user_new_password);
+      $user->user_hp = $user_hp;
+      try {
+        $user->save();
+      } catch (Exception $e) {
+        $code['c']=0;
+        $code['m']='Failed to add user';
+        Session::flash('msg',$code);
+        return Redirect::back();
+      }
+      $code['c']=1;
+      $code['m']='User added';
+      Session::flash('msg',$code);
+      return Redirect::back();
     }
 }

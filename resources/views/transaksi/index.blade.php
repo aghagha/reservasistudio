@@ -17,11 +17,7 @@
     ?>
     <div class="row">
         <div class="col-md-12">
-            <div class="box box-primary">
-                <div class="box-header with-border">
-                    <h3 class="box-title"><b>List Studio</b></h3>
-                </div>
-                <div class="box-body">
+          
                     @if (Session::has('msg'))
                         @if(Session::get('msg')['c'] == '1')
                             <div class="alert alert-info">{{ Session::get('msg')['m'] }}</div>
@@ -29,6 +25,11 @@
                             <div class="alert alert-danger">{{ Session::get('msg')['m'] }}</div>
                         @endif
                     @endif
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title"><b>Transaction List</b></h3>
+                </div>
+                <div class="box-body">
                     <table id="tabletable" class="table table-bordered table-striped">
                         <thead>
                             <tr>
@@ -69,6 +70,65 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+            <div class="box box-primary">
+              <div class="box-header with-border">
+                <h3 class="box-title"><b>Export to Excel</b></h3>
+              </div>
+              <div class="box-body">
+                <div>
+                  {{Form::open(['url'=>'studio/report','method'=>'POST','role'=>'form', 'class'=>'form-horizontal'])}}
+                    <div class="form-group">
+                      <label for="nama_city" class="col-md-1">Daily</label>
+                      <div class="col-md-3">
+                        {{Form::select('studio_id',$studio,null,['class'=>'form-control'])}}
+                      </div>
+                      <div class="col-md-3">
+                        {{Form::date('hari',\Carbon\Carbon::now(),['class'=>'form-control'])}}
+                      </div>
+                      <div class="col-md-3">
+                        {{Form::submit('View',['class'=>'btn btn-primary'])}}
+                      </div>
+                    </div>
+                  {{Form::close()}}
+                </div>
+              </div>
+              <div class="box-body">
+                <div>
+                  {{Form::open(['url'=>'studio/report','method'=>'POST','role'=>'form', 'class'=>'form-horizontal'])}}
+                    <div class="form-group">
+                      <label for="nama_city" class="col-md-1">Monthly</label>
+                      <div class="col-md-3">
+                        {{Form::select('studio_id',$studio,null,['class'=>'form-control'])}}
+                      </div>
+                      <div class="col-md-3">
+                        <input type="month" name="bulan" class="form-control">
+                      </div>
+                      <div class="col-md-3">
+                        {{Form::submit('View',['class'=>'btn btn-primary'])}}
+                      </div>
+                    </div>
+                  {{Form::close()}}
+                </div>
+              </div>
+              <div class="box-body">
+                <div>
+                  {{Form::open(['url'=>'studio/report','method'=>'POST','role'=>'form', 'class'=>'form-horizontal'])}}
+                    <div class="form-group">
+                      <label for="nama_city" class="col-md-1">Annually</label>
+                      <div class="col-md-3">
+                        {{Form::select('studio_id',$studio,null,['class'=>'form-control'])}}
+                      </div>
+                      <div class="col-md-3">
+                        <input type="text" name="tahun" class="form-control">
+                      </div>
+                      <div class="col-md-5">
+                        {{Form::submit('View',['class'=>'btn btn-primary'])}}
+                      </div>
+                    </div>
+                  {{Form::close()}}
+                </div>
+              </div>
             </div>
         </div>
     </div>

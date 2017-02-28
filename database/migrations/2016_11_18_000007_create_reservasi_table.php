@@ -27,6 +27,7 @@ class CreateReservasiTable extends Migration
         $table->string('refund_status');
         $table->string('reservasi_status');
         $table->string('reservasi_waktu_booking');
+        $table->string('reservasi_batas');
         $table->string('reservasi_tanggal');
         $table->string('reservasi_refund');
         $table->timestamp('refunded_at');

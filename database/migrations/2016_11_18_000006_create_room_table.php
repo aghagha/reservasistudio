@@ -19,6 +19,7 @@ class CreateRoomTable extends Migration
         $table->foreign('studio_id')->references('studio_id')->on('studios');
         $table->string('room_nama');
         $table->string('room_harga');
+        $table->softDeletes();
         $table->timestamps();
       });
     }
