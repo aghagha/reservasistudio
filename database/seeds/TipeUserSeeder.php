@@ -1,5 +1,6 @@
 <?php
 
+use App\TipeUser;
 use Illuminate\Database\Seeder;
 
 class TipeUserSeeder extends Seeder
@@ -11,12 +12,11 @@ class TipeUserSeeder extends Seeder
      */
     public function run()
     {
-        DB::table('tipe_users')->insert([
-            'tipe_user_tipe' => 'Pengguna'
-        ]);
-
-        DB::table('tipe_users')->insert([
-            'tipe_user_tipe' => 'Studio'
-        ]);
+        $data = array(
+            array('tipe_user_tipe' => 'Pelanggan'),
+            array('tipe_user_tipe' => 'Studio'),
+            array('tipe_user_tipe' => 'Admin')
+        );
+        TipeUser::insert($data);
     }
 }

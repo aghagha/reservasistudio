@@ -118,7 +118,7 @@ class ReservasiController extends Controller
     $jadwal = Jadwal::all()->toArray();
     $reservasi = array();
     try {
-      $reservasi['reservasi'] = Reservasi::where('user_id','=',$user_id)->get()->toArray();
+      $reservasi['reservasi'] = Reservasi::where('user_id','=',$user_id)->orderBy('reservasi_tanggal','desc')->get()->toArray();
     } catch (Exception $e) {
       $reservasi['code']=0;
       $reservasi['status']='Request gagal';
@@ -149,7 +149,7 @@ class ReservasiController extends Controller
           $jadwal_id .=$jadwal[$d['jadwal_id']-1]['jadwal_start'].'-'.$jadwal[$d['jadwal_id']-1]['jadwal_end'].', ';
           $i++;
         }
-        $room = Room::where('room_id',$r['room_id'])->first()->toArray();
+        $room = Room::withTrashed()->where('room_id',$r['room_id'])->first()->toArray();
         $studio = Studio::withTrashed()->where('studio_id',$room['studio_id'])->first()->toArray();
         $reservasi['reservasi'][$j]['room_nama'] = $room['room_nama'];
         $reservasi['reservasi'][$j]['studio_nama'] = $studio['studio_nama'];
@@ -167,7 +167,10 @@ class ReservasiController extends Controller
   }
 
   function cancel(Request $request){
-    $treshold = 1;
+    //////////////////////////////////////BATAS REFUND////////
+    $treshold = 3;  /////////////////////////////////////////
+    //////////////////////////////////////////////////////////
+
     $reservasi_id = $request->input('reservasi_id');
     $reservasi = Reservasi::where('reservasi_id',$reservasi_id)->get();
     $output=(object)array();
@@ -218,6 +221,22 @@ class ReservasiController extends Controller
     }
     Session::flash('msg',$output);
     return Redirect::route('studio.issue');
+  }
+
+  function issueRefund($id){
+    $code = array();
+    $data = array('refunded_at'=>date('Y-m-d',strtotime('now')));
+    try {
+      Reservasi::where('reservasi_id',$id)->update($data);
+      $code['c'] = '1';
+      $code['m'] = 'Refund completed!';
+    } catch (Exception $e) {
+      echo $e;exit;
+      $code['c'] = '0';
+      $code['m'] = 'Refund process failed, please try again..';
+    }
+    Session::flash('msg',$code);
+    return Redirect::route('studio.transaction');
   }
 
   function getKontak(Request $request){

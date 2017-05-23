@@ -88,6 +88,8 @@ Route::group(['prefix'=>'studio','middleware'=>['studiocheck']],function(){
   Route::post('detailreservasi','ReservasiController@getdetail');
   Route::get('transaction',['as'=>'studio.transaction','uses'=>'ReservasiController@showTransactionPage']);
 
+  Route::get('refundpayment/{id}','ReservasiController@issueRefund');
+
   Route::post('report','TransactionController@export');
 });
 

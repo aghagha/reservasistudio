@@ -250,4 +250,10 @@ class UserController extends Controller
       Session::flash('msg',$code);
       return Redirect::back();
     }
+
+    //////////////
+    function testTA(Request $request){
+      return json_encode($request->nama);
+    }
+    /////////////
 }

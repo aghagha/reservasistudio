@@ -63,8 +63,18 @@
                               <td>{{$r['reservasi_tanggal']}}</td>
                               <td>{{$r['reservasi_tagihan']}}</td>
                               <td>{{$status[$r['reservasi_status']]}}</td>
-                              <td>{{$r['refunded_at']}}</td>
-                              <td>{{$r['reservasi_refund']}}</td>
+                              <td>
+                                @if($r['refunded_at']==null && $r['reservasi_refund']!= '0')
+                                  <a href="#">
+                                      <button type="button" class="btn btn-warning btn-xs refund-btn" value="{{$r['reservasi_id']}}">
+                                          Refund now
+                                      </button>
+                                  </a>
+                                @else
+                                  {{$r['refunded_at']}}
+                                @endif
+                              </td>
+                              <td class='refund-this'>{{$r['reservasi_refund']}}</td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -132,9 +142,40 @@
             </div>
         </div>
     </div>
+    <div id="refund-modal" class="modal fade modal-danger" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title"><b>Refund Reservastion</b></h4>
+          </div>
+          <div class="modal-body">
+            {{Form::open(['role'=>'form'])}}
+              <div class="form-group">
+                <label for="nama_city">Refund cost:</label>
+                <h3 id="refund-amount">amount here</h3>
+              </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+            <a id="refund-url" href="#">
+              <button type="button" class="btn btn-danger">Done</button>
+            </a>
+            {{Form::close()}}
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
     <script>
         $(document).ready(function(){
             $('#tabletable').DataTable();
+            $('.refund-btn').click(function(){
+              var r_id = $(this).val();
+              var url = 'refundpayment/'+r_id;
+              $('#refund-amount').text($(this).closest('tr').children('td.refund-this').text());
+              $('#refund-url').attr('href',url);
+              $('#refund-modal').modal('show');
+            });
         });
     </script>
 @stop
